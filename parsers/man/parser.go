@@ -7,11 +7,10 @@ import (
 
 type Page struct {
 	Name    string
-	Options []*Option
+	Options *OptionList
 }
 
-type Parser struct {
-}
+type Parser struct{}
 
 func NewParser() *Parser {
 	return &Parser{}
@@ -29,7 +28,9 @@ func (p *Parser) Parse(str string) *Page {
 	var currentArgDescription string
 	var innerStructure bool
 
-	page := &Page{}
+	page := &Page{
+		Options: &OptionList{},
+	}
 
 	for _, line := range strings.Split(str, "\n") {
 		line = strings.TrimSpace(line)
@@ -61,7 +62,8 @@ func (p *Parser) Parse(str string) *Page {
 			// also ignore args without descriptions, they're not helpful
 			if len(currentArgName) > 0 {
 				if len(currentArgDescription) > 0 {
-					page.Options = append(page.Options, NewOption(currentArgName, currentArgDescription))
+					opt := NewOption(currentArgName, currentArgDescription)
+					page.Options.Add(opt)
 				}
 			}
 
@@ -69,7 +71,7 @@ func (p *Parser) Parse(str string) *Page {
 			currentArgDescription = "" // reset for next arg
 		} else {
 			if len(currentArgName) > 0 && !innerStructure {
-				currentArgDescription += line
+				currentArgDescription += "\n" + line
 			}
 		}
 	}

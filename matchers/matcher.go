@@ -8,17 +8,17 @@ import (
 
 type Matcher struct {
 	command    *args.Command
-	manOptions []*man.Option
+	manOptions *man.OptionList
 }
 
-func NewMatcher(command *args.Command, options []*man.Option) *Matcher {
+func NewMatcher(command *args.Command, options *man.OptionList) *Matcher {
 	return &Matcher{
 		command:    command,
 		manOptions: options,
 	}
 }
 
-func (m *Matcher) Match() []*man.Option {
+func (m *Matcher) Match() *man.OptionList {
 	var found []*man.Option
 
 	for _, arg := range m.command.Args {
@@ -26,7 +26,7 @@ func (m *Matcher) Match() []*man.Option {
 		if strings.Contains(arg, "--") {
 			arg = strings.Trim(arg, "-")
 
-			for _, opt := range m.manOptions {
+			for _, opt := range m.manOptions.Options() {
 				// search for exact match
 				if opt.Name == arg || opt.ShortName == arg {
 					found = append(found, opt)
@@ -38,7 +38,7 @@ func (m *Matcher) Match() []*man.Option {
 		if strings.Contains(arg, "-") {
 			arg = strings.Trim(arg, "-")
 
-			for _, opt := range m.manOptions {
+			for _, opt := range m.manOptions.Options() {
 				// search for exact match
 				if opt.Name == arg || opt.ShortName == arg {
 					found = append(found, opt)
@@ -55,5 +55,5 @@ func (m *Matcher) Match() []*man.Option {
 		}
 	}
 
-	return found
+	return man.NewOptionList(found)
 }

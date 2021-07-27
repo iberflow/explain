@@ -13,8 +13,6 @@ import (
 func main() {
 	var manPath = os.Getenv("MANPATH")
 
-	//args := os.Args[1:]
-
 	str := "curl -sSL -a --basic 'https://install.larashed.com/linux'"
 
 	commands := args.Parse(str)
@@ -30,12 +28,9 @@ func main() {
 
 		parser := man.NewParser()
 		parsedPage := parser.Parse(manPage)
+		argumentMatcher := matchers.NewMatcher(cmd, parsedPage.Options)
 
-		_ = matchers.NewMatcher(cmd, parsedPage.Options)
-		//argumentMatcher := matchers.NewMatcher(cmd, result.Options)
-		//spew.Dump(argumentMatcher.Match())
-		app := gui.NewApp(parsedPage.Options, cmd)
+		app := gui.NewApp(parsedPage.Options, cmd, argumentMatcher.Match())
 		app.Draw()
 	}
-
 }

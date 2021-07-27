@@ -1,9 +1,9 @@
 package args
 
-import "strings"
-
-const ArgColor = "#ff0000"
-const FlagColor = "#fff000"
+import (
+	"github.com/ignasbernotas/explain/config"
+	"strings"
+)
 
 type Command struct {
 	Name string
@@ -27,22 +27,10 @@ func (c *Command) StringRegions() string {
 	cmd := `[cmd]` + c.Name + `[""]`
 
 	for _, arg := range c.Args {
-		cmd += ` ` + c.ColorArg(arg)
+		cmd += ` ` + config.ColorArg(arg)
 	}
 
 	return cmd
-}
-
-func (c *Command) ColorArg(arg string) string {
-	color := ArgColor
-
-	if strings.Contains(arg, "-") {
-		color = FlagColor
-	}
-
-	arg = `[` + color + `]` + arg + `[""]`
-
-	return arg
 }
 
 func Parse(str string) (commands []*Command) {
