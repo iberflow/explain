@@ -1,18 +1,16 @@
 package config
 
-import "strings"
-
 const ArgColor = "#00ffae"
 const FlagColor = "#fff000"
 
-func ColorArg(arg string) string {
-	color := ArgColor
+func ColorArg(arg string, flag bool, color string) string {
+	c := ArgColor
 
-	if strings.Contains(arg, "-") {
-		color = FlagColor
+	if flag {
+		c = FlagColor
 	}
 
-	arg = `[` + color + `]` + arg + `[white]`
+	arg = `[` + c + `]` + arg + `[white]`
 
 	return arg
 }

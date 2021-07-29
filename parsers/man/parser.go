@@ -7,7 +7,7 @@ import (
 
 type Page struct {
 	Name    string
-	Options *OptionList
+	Options *List
 }
 
 type Parser struct{}
@@ -29,7 +29,7 @@ func (p *Parser) Parse(str string) *Page {
 	var innerStructure bool
 
 	page := &Page{
-		Options: &OptionList{},
+		Options: &List{},
 	}
 
 	for _, line := range strings.Split(str, "\n") {

@@ -7,40 +7,12 @@ import (
 
 var paramPattern = regexp.MustCompile(`(?i)<(.*)>`)
 
-type OptionList struct {
-	options []*Option
-}
-
-func NewOptionList(options []*Option) *OptionList {
-	return &OptionList{options: options}
-}
-
-func (ol *OptionList) Options() []*Option {
-	return ol.options
-}
-
-func (ol *OptionList) Add(option *Option) *OptionList {
-	ol.options = append(ol.options, option)
-
-	return ol
-}
-
-func (ol *OptionList) Search(match string) int {
-	for i, o := range ol.options {
-		if o.String() == match {
-			return i
-		}
-	}
-
-	return 0
-}
-
 type Option struct {
 	Name          string
 	NameIndicator string
 
-	ShortName          string
-	ShortNameIndicator string
+	Alias          string
+	AliasIndicator string
 
 	Parameter   string
 	Description string
@@ -48,10 +20,10 @@ type Option struct {
 
 func (o *Option) String() string {
 	name := o.Name
-	if name == o.ShortName {
+	if name == o.Alias {
 		name = o.NameIndicator + name
 	} else {
-		name = o.ShortNameIndicator + o.ShortName + ", " + o.NameIndicator + name
+		name = o.AliasIndicator + o.Alias + ", " + o.NameIndicator + name
 	}
 
 	return name
@@ -84,26 +56,26 @@ func buildOption(name string, description string) *Option {
 	if len(args) == 2 {
 		if len(args[0]) < len(args[1]) {
 			opt.Name = args[1]
-			opt.ShortName = args[0]
+			opt.Alias = args[0]
 		}
 
 		if len(args[1]) < len(args[0]) {
 			opt.Name = args[0]
-			opt.ShortName = args[1]
+			opt.Alias = args[1]
 		}
 	}
 
 	// if only a single arg defined, use it for both names
 	if len(args) == 1 {
 		opt.Name = args[0]
-		opt.ShortName = args[0]
+		opt.Alias = args[0]
 	}
 
 	opt.NameIndicator = getIndicator(opt.Name)
-	opt.ShortNameIndicator = getIndicator(opt.ShortName)
+	opt.AliasIndicator = getIndicator(opt.Alias)
 
 	opt.Name = strings.Trim(opt.Name, "-")
-	opt.ShortName = strings.Trim(opt.ShortName, "-")
+	opt.Alias = strings.Trim(opt.Alias, "-")
 
 	return opt
 }

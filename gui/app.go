@@ -11,11 +11,16 @@ import (
 )
 
 type Widgets struct {
-	sidebar           *tview.List
-	commandLine       *tview.TextView
-	optionDescription *tview.TextView
+	sidebar *tview.List
+
+	commandLine    *tview.TextView
+	commandOptions *tview.Flex
+	commandForm    *tview.Modal
+
 	optionTitle       *tview.TextView
-	commandOptions    *tview.Flex
+	optionDescription *tview.TextView
+
+	pages *tview.Pages
 }
 
 func NewWidgets() *Widgets {
@@ -26,21 +31,21 @@ type App struct {
 	gui     *tview.Application
 	widgets *Widgets
 
-	command *args.Command
+	documentationOptions *man.List
 
-	documentationOptions *man.OptionList
-	commandOptions       *man.OptionList
+	command        *args.Command
+	commandOptions *man.List
 
 	activeOption *man.Option
 }
 
 const showBorders = false
 
-func NewApp(documentationOptions *man.OptionList, command *args.Command, commandOptions *man.OptionList) *App {
+func NewApp(documentationOptions *man.List, command *args.Command, commandOptions *man.List) *App {
 	return &App{
 		documentationOptions: documentationOptions,
-		command:              command,
 
+		command:        command,
 		commandOptions: commandOptions,
 
 		gui:     tview.NewApplication(),
@@ -53,10 +58,28 @@ func (a *App) Draw() {
 	a.widgets.commandLine = a.commandLine()
 	a.widgets.commandOptions = a.optionList()
 	a.widgets.optionDescription = a.currentOption()
+	a.widgets.commandForm = a.commandForm()
+	a.widgets.optionTitle = a.optionTitle()
+	a.widgets.pages = a.buildPages()
 
-	a.widgets.optionTitle = titleWidget("Welcome!", 0, false)
-	a.widgets.optionTitle.SetBorderPadding(0, 0, 2, 2)
+	a.setupKeyBindings()
 
+	if err := a.gui.
+		SetRoot(a.widgets.pages, true).
+		EnableMouse(true).
+		Run(); err != nil {
+		panic(err)
+	}
+}
+
+func (a *App) optionTitle() *tview.TextView {
+	t := titleWidget("Welcome!", 0, false)
+	t.SetBorderPadding(0, 0, 2, 2)
+
+	return t
+}
+
+func (a *App) buildPages() *tview.Pages {
 	sidebar := tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(titleWidget("Options", 1, true), 3, 1, false).
@@ -69,24 +92,84 @@ func (a *App) Draw() {
 		AddItem(a.widgets.optionDescription, 0, 4, false).
 		AddItem(a.widgets.commandOptions, 0, 6, false)
 
+	changeCommand := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(a.widgets.commandForm, 0, 1, true)
+
 	container := tview.NewFlex()
 	container.AddItem(sidebar, 25, 1, true)
 	container.AddItem(content, 0, 5, false)
 
-	if err := a.gui.
-		SetRoot(container, true).
-		EnableMouse(true).
-		Run(); err != nil {
-		panic(err)
+	pages := tview.NewPages()
+	pages.AddPage("dashboard", container, true, true)
+	pages.AddPage("changeCommand", changeCommand, true, false)
+
+	return pages
+}
+
+func (a *App) setupKeyBindings() {
+	a.gui.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEsc {
+			pageName, _ := a.widgets.pages.GetFrontPage()
+			if pageName == "dashboard" {
+				a.gui.Stop()
+			} else {
+				a.widgets.pages.SwitchToPage("dashboard")
+			}
+
+			return nil
+		}
+		if event.Key() == tcell.KeyCtrlQ {
+			return nil
+		}
+		if event.Rune() == '?' {
+			a.widgets.pages.SwitchToPage("changeCommand")
+
+			return nil
+		}
+		return event
+	})
+}
+
+func (a *App) commandForm() *tview.Modal {
+	var cmd *args.Command
+	changed := func(text string) {
+		text = strings.TrimSpace(text)
+		if len(text) == 0 {
+			return
+		}
+		commands := args.Parse(text)
+		cmd = commands[0]
 	}
+
+	modal := tview.NewModal().
+		AddInputText([]string{"Command: "}, a.command.String(), changed).
+		SetText("Edit command").
+		AddButtons([]string{"Save", "Cancel"}).
+		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+			if buttonLabel == "Save" {
+				if cmd != nil {
+					a.command = cmd
+				}
+
+				a.widgets.commandLine.Clear()
+				a.widgets.commandLine.SetText(text.RenderCommand(a.command, a.documentationOptions))
+				a.widgets.pages.SwitchToPage("dashboard")
+			}
+		})
+
+	return modal
 }
 
 func (a *App) commandLine() *tview.TextView {
 	cmd := tview.NewTextView()
-	cmd.SetText(a.command.StringRegions()).
+	cmd.SetText(text.RenderCommand(a.command, a.documentationOptions)).
 		SetToggleHighlights(true).
 		SetDynamicColors(true).
-		SetRegions(true).SetTextAlign(1)
+		SetRegions(true).
+		SetTextAlign(1)
+
+	cmd.SetRegionClickFunc(a.regionClickFunc())
 
 	cmd.SetBorder(showBorders).
 		SetBorderPadding(0, 0, 2, 2)
@@ -96,7 +179,7 @@ func (a *App) commandLine() *tview.TextView {
 
 func (a *App) currentOption() *tview.TextView {
 	activeOption := tview.NewTextView()
-	activeOption.SetText("Hope you have a pleasant day 🔥 💞").
+	activeOption.SetText("").
 		SetToggleHighlights(true).
 		SetDynamicColors(true).
 		SetWordWrap(true).
@@ -124,8 +207,7 @@ func (a *App) optionList() *tview.Flex {
 			SetDynamicColors(true).
 			SetRegions(true)
 
-		titleText := text.Underline(text.MarkRegion(i, opt.String()))
-		//titleText := text.Underline(opt.String())
+		titleText := text.Underline(text.MarkRegion(i, opt.String(), true))
 		title := titleWidget("◉ "+titleText, 1, false)
 		title.SetBorderPadding(1, 0, 2, 2)
 		title.SetTextColor(tcell.GetColor(config.FlagColor))

@@ -28,6 +28,7 @@ func main() {
 
 		parser := man.NewParser()
 		parsedPage := parser.Parse(manPage)
+
 		argumentMatcher := matchers.NewMatcher(cmd, parsedPage.Options)
 
 		app := gui.NewApp(parsedPage.Options, cmd, argumentMatcher.Match())
