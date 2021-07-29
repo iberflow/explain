@@ -17,7 +17,7 @@ func FormatDescription(desc string) string {
 	matches := pattern.FindAllStringSubmatch(desc, -1)
 	for i, m := range matches {
 		if isArg(m[1]) {
-			desc = strings.Replace(desc, m[0], markRegion(i, m[1]), 1)
+			desc = strings.Replace(desc, m[0], MarkRegion(i, m[1]), 1)
 		}
 	}
 
@@ -37,6 +37,10 @@ func StripColor(desc string) string {
 	return desc
 }
 
-func markRegion(index int, arg string) string {
+func Underline(arg string) string {
+	return fmt.Sprintf(`[::u]%s[""]`, arg)
+}
+
+func MarkRegion(index int, arg string) string {
 	return fmt.Sprintf(`["%d"]%s[""]`, index, config.ColorArg(arg))
 }

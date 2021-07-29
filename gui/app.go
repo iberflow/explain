@@ -7,13 +7,15 @@ import (
 	"github.com/ignasbernotas/explain/parsers/man"
 	"github.com/ignasbernotas/explain/text"
 	"github.com/rivo/tview"
+	"strings"
 )
 
 type Widgets struct {
-	options           *tview.List
-	command           *tview.TextView
+	sidebar           *tview.List
+	commandLine       *tview.TextView
 	optionDescription *tview.TextView
 	optionTitle       *tview.TextView
+	commandOptions    *tview.Flex
 }
 
 func NewWidgets() *Widgets {
@@ -46,115 +48,134 @@ func NewApp(documentationOptions *man.OptionList, command *args.Command, command
 	}
 }
 
-func titleWidget(title string, pY int) *tview.TextView {
-	widget := tview.NewTextView().SetText(title)
-	widget.SetBorder(showBorders)
-	widget.SetBorderPadding(pY, pY, 1, 1)
-	widget.SetTextAlign(1)
-
-	return widget
-}
-
 func (a *App) Draw() {
-	a.widgets.options = a.getCommandOptionsBox()
-	a.widgets.command = a.getCommandBox()
-	a.widgets.optionDescription = a.getOptionDescriptionBox()
-	a.widgets.optionTitle = titleWidget("Current command", 0)
+	a.widgets.sidebar = a.sidebar()
+	a.widgets.commandLine = a.commandLine()
+	a.widgets.commandOptions = a.optionList()
+	a.widgets.optionDescription = a.currentOption()
 
-	flex := tview.NewFlex().
-		AddItem(
-			tview.NewFlex().
-				SetDirection(tview.FlexRow).
-				AddItem(titleWidget("Options", 1), 4, 1, false).
-				AddItem(a.widgets.options, 0, 1, true),
-			0, 1, true,
-		).
-		AddItem(
-			tview.NewFlex().SetDirection(tview.FlexRow).
-				AddItem(titleWidget("Command", 1), 4, 1, false).
-				AddItem(a.widgets.command, 5, 1, false).
-				AddItem(a.widgets.optionTitle, 3, 1, false).
-				AddItem(a.widgets.optionDescription, 0, 1, false),
-			0, 3, false,
-		)
+	a.widgets.optionTitle = titleWidget("Welcome!", 0, false)
+	a.widgets.optionTitle.SetBorderPadding(0, 0, 2, 2)
+
+	sidebar := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(titleWidget("Options", 1, true), 3, 1, false).
+		AddItem(a.widgets.sidebar, 0, 1, true)
+
+	content := tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(titleWidget("Command", 1, true), 3, 0, false).
+		AddItem(a.widgets.commandLine, 3, 0, false).
+		AddItem(a.widgets.optionTitle, 1, 0, false).
+		AddItem(a.widgets.optionDescription, 0, 4, false).
+		AddItem(a.widgets.commandOptions, 0, 6, false)
+
+	container := tview.NewFlex()
+	container.AddItem(sidebar, 25, 1, true)
+	container.AddItem(content, 0, 5, false)
 
 	if err := a.gui.
-		SetRoot(flex, true).
+		SetRoot(container, true).
 		EnableMouse(true).
 		Run(); err != nil {
 		panic(err)
 	}
 }
 
-func (a *App) getOptionDescriptionBox() *tview.TextView {
+func (a *App) commandLine() *tview.TextView {
+	cmd := tview.NewTextView()
+	cmd.SetText(a.command.StringRegions()).
+		SetToggleHighlights(true).
+		SetDynamicColors(true).
+		SetRegions(true).SetTextAlign(1)
+
+	cmd.SetBorder(showBorders).
+		SetBorderPadding(0, 0, 2, 2)
+
+	return cmd
+}
+
+func (a *App) currentOption() *tview.TextView {
 	activeOption := tview.NewTextView()
-	activeOption.SetText("Select an argument").
+	activeOption.SetText("Hope you have a pleasant day 🔥 💞").
 		SetToggleHighlights(true).
 		SetDynamicColors(true).
 		SetWordWrap(true).
 		SetRegions(true)
-
-	activeOption.SetBorder(showBorders).
-		SetBorderPadding(0, 0, 2, 2)
-
-	activeOption.SetRegionClickFunc(func(region string) {
-		region = text.StripColor(region)
-		found := a.documentationOptions.Search(region)
-		if found > 0 {
-			activeOption.Clear()
-			a.widgets.options.SetCurrentItem(found)
-			a.widgets.options.SetOffset(found, 0)
-		}
-	})
-
-	activeOption.Highlight("")
+	activeOption.SetBorderPadding(0, 0, 2, 2)
+	activeOption.SetBorder(showBorders)
+	activeOption.SetRegionClickFunc(a.regionClickFunc())
 
 	return activeOption
 }
 
-func (a *App) getCommandBox() *tview.TextView {
-	command := tview.NewTextView()
-	command.SetText(a.command.StringRegions()).
-		SetToggleHighlights(true).
-		SetDynamicColors(true).
-		SetRegions(true)
-
-	command.SetBorder(showBorders).
-		SetBorderPadding(1, 1, 2, 2)
-
-	return command
-}
-
-func (a *App) getActiveCommandOptionsBox() *tview.Flex {
+func (a *App) optionList() *tview.Flex {
 	flex := tview.NewFlex().
-		SetDirection(tview.FlexRow).
-		AddItem(titleWidget("Options", 1), 4, 1, false).
-		AddItem(a.widgets.options, 0, 1, true)
+		SetDirection(tview.FlexRow)
+
+	flex.SetBorderPadding(1, 4, 0, 0)
+
+	for i, opt := range a.commandOptions.Options() {
+		optionBox := tview.NewTextView()
+		optionBox.SetBorderPadding(0, 0, 2, 2)
+		optionBox.SetRegionClickFunc(a.regionClickFunc())
+		optionBox.SetText(text.FormatDescription(strings.TrimSpace(opt.Description)))
+		optionBox.SetBorder(false)
+		optionBox.SetToggleHighlights(true).
+			SetDynamicColors(true).
+			SetRegions(true)
+
+		titleText := text.Underline(text.MarkRegion(i, opt.String()))
+		//titleText := text.Underline(opt.String())
+		title := titleWidget("◉ "+titleText, 1, false)
+		title.SetBorderPadding(1, 0, 2, 2)
+		title.SetTextColor(tcell.GetColor(config.FlagColor))
+		title.SetRegionClickFunc(a.regionClickFunc())
+		title.SetToggleHighlights(true).
+			SetDynamicColors(true).
+			SetRegions(true)
+
+		title.SetBorder(false)
+
+		flex.AddItem(title, 2, 1, false)
+		flex.AddItem(optionBox, 0, 1, true)
+	}
 
 	return flex
 }
 
-func (a *App) getCommandOptionsBox() *tview.List {
-	options := tview.NewList().ShowSecondaryText(false)
-	options.SetBorder(showBorders)
-	options.KeepSelectedItemInView(false)
-	options.SetSelectOnNavigation(true)
-	options.SetSelectedFocusOnly(false)
-	options.SetHighlightFullLine(true)
-	options.SetBorderPadding(1, 1, 3, 3)
-	options.SetSelectedFunc(func(i int, s string, s2 string, r rune) {
+func (a *App) sidebar() *tview.List {
+	list := tview.NewList().ShowSecondaryText(false)
+	list.SetBorder(showBorders)
+	list.KeepSelectedItemInView(false)
+	list.SetSelectOnNavigation(true)
+	list.SetSelectedFocusOnly(false)
+	list.SetHighlightFullLine(true)
+	list.SetBorderPadding(0, 1, 3, 3)
+	list.SetSelectedFunc(func(i int, s string, s2 string, r rune) {
+		opts := a.documentationOptions.Options()
 		a.widgets.optionDescription.
-			SetText(text.FormatDescription(a.documentationOptions.Options()[i].Description)).
+			SetText(text.FormatDescription(opts[i].Description)).
 			ScrollToBeginning()
 
 		a.widgets.optionTitle.
 			SetTextColor(tcell.GetColor(config.FlagColor)).
-			SetText(a.documentationOptions.Options()[i].String())
+			SetText(opts[i].String())
 	})
 
 	for _, opt := range a.documentationOptions.Options() {
-		options.AddItem(opt.String(), opt.Description, 0, nil)
+		list.AddItem(opt.String(), opt.Description, 0, nil)
 	}
 
-	return options
+	return list
+}
+
+func (a *App) regionClickFunc() func(region string) {
+	return func(region string) {
+		region = text.StripColor(region)
+		found := a.documentationOptions.Search(region)
+		if found > 0 {
+			a.widgets.sidebar.SetCurrentItem(found)
+			a.widgets.sidebar.SetOffset(found, 0)
+		}
+	}
 }
