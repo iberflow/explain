@@ -62,3 +62,7 @@ func (m *Matcher) Match() *man.List {
 
 	return man.NewList(found)
 }
+
+func (m *Matcher) unique(list *man.List) {
+
+}

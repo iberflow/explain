@@ -30,14 +30,10 @@ func (c *Command) String() string {
 	return c.Name + " " + c.Args.String()
 }
 
-func Parse(str string) (commands []*Command) {
+func Parse(str string) *Command {
 	pipedCommands := strings.Split(str, "|")
 
-	for i := 0; i < len(pipedCommands); i++ {
-		commands = append(commands, NewCommand(strings.TrimSpace(pipedCommands[i])))
-	}
-
-	return commands
+	return NewCommand(strings.TrimSpace(pipedCommands[0]))
 }
 
 func parseArgs(args []string) *List {

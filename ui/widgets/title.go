@@ -1,8 +1,8 @@
-package gui
+package widgets
 
 import "github.com/rivo/tview"
 
-func titleWidget(title string, pY int, alignMiddle bool) *tview.TextView {
+func Title(title string, pY int, alignMiddle bool) *tview.TextView {
 	widget := tview.NewTextView().SetText(title)
 	widget.SetBorder(false)
 	widget.SetBorderPadding(pY, pY, 1, 1)

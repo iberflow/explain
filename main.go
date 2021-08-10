@@ -1,37 +1,23 @@
 package main
 
 import (
-	"github.com/ignasbernotas/explain/gui"
-	"github.com/ignasbernotas/explain/matchers"
-	"github.com/ignasbernotas/explain/parsers/args"
 	"github.com/ignasbernotas/explain/parsers/man"
 	manreader "github.com/ignasbernotas/explain/readers/man"
-	"log"
+	"github.com/ignasbernotas/explain/ui"
 	"os"
+	"strings"
 )
 
 func main() {
-	var manPath = os.Getenv("MANPATH")
+	reader := manreader.NewReader(os.Getenv("MANPATH"))
 
-	str := "curl -sSL -a --basic 'https://install.larashed.com/linux'"
+	args := os.Args[1:]
+	cmd := strings.Join(args, " ")
 
-	commands := args.Parse(str)
+	parser := man.NewParser()
+	processor := ui.NewProcessor(reader, parser)
+	processor.LoadCommand(cmd)
 
-	reader := manreader.NewReader(manPath)
-
-	for _, cmd := range commands {
-		manPage, err := reader.Read(cmd.Name)
-		if err != nil {
-			log.Println(err.Error())
-			return
-		}
-
-		parser := man.NewParser()
-		parsedPage := parser.Parse(manPage)
-
-		argumentMatcher := matchers.NewMatcher(cmd, parsedPage.Options)
-
-		app := gui.NewApp(parsedPage.Options, cmd, argumentMatcher.Match())
-		app.Draw()
-	}
+	app := ui.NewApp(processor)
+	app.Draw()
 }
