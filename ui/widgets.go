@@ -15,6 +15,8 @@ type Widgets struct {
 	selectedArgument *widgets.SelectedArgument
 
 	pages *Pages
+
+	help *widgets.Help
 }
 
 func NewWidgets() *Widgets {

@@ -35,7 +35,7 @@ func (c *CommandLine) SetClickFunc(opts *man.List, callback OptionClickFunc) *Co
 func (c *CommandLine) Layout() *tview.Flex {
 	return tview.NewFlex().
 		SetDirection(tview.FlexRow).
-		AddItem(Title("Options", 1, true), 3, 1, false).
+		AddItem(Title("Command", 1, true), 3, 1, false).
 		AddItem(c.view, 0, 1, true)
 }
 

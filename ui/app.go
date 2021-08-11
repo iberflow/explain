@@ -2,7 +2,6 @@ package ui
 
 import (
 	"github.com/gdamore/tcell/v2"
-	"github.com/ignasbernotas/explain/text"
 	"github.com/ignasbernotas/explain/ui/widgets"
 	"github.com/rivo/tview"
 )
@@ -22,6 +21,7 @@ func NewApp(processor *Processor) *App {
 }
 
 func (a *App) Draw() {
+	a.widgets.help = widgets.NewHelp()
 	a.widgets.sidebar = a.sidebar()
 	a.widgets.commandLine = a.commandLine()
 	a.widgets.selectedArgument = a.selectedArgument()
@@ -53,6 +53,7 @@ func (a *App) buildPages() *Pages {
 	dashboard := tview.NewFlex()
 	dashboard.AddItem(a.widgets.sidebar.Layout(), 25, 1, true)
 	dashboard.AddItem(content, 0, 5, false)
+	dashboard.AddItem(a.widgets.help.Layout(), 0, 1, false)
 
 	pages.Add(PageDashboard, dashboard)
 
@@ -127,6 +128,16 @@ func (a *App) setupKeyBindings() {
 	})
 }
 
+func (a *App) commandOptions() *widgets.CommandOptions {
+	opts := widgets.NewCommandOptions()
+	opts.SetClickFunc(a.processor.DocumentationOptions(), func(index int) {
+		a.widgets.sidebar.Select(index)
+	})
+	opts.SetOptions(a.processor.CommandOptions())
+
+	return opts
+}
+
 func (a *App) commandForm() *tview.Modal {
 	var cmd string
 	changed := func(text string) {
@@ -139,35 +150,19 @@ func (a *App) commandForm() *tview.Modal {
 		AddButtons([]string{"Save", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Save" {
-				if len(cmd) > 0 {
-					a.processor.LoadCommand(cmd)
-				}
-				a.widgets.sidebar.SetOptions(a.processor.DocumentationOptions())
-				a.widgets.commandLine.SetCommand(a.processor.Command(), a.processor.DocumentationOptions())
-				a.widgets.commandOptions.SetOptions(a.processor.CommandOptions())
-				a.widgets.pages.Show(PageDashboard)
+				a.updateCommand(cmd)
 			}
 		})
 
 	return modal
 }
 
-func (a *App) regionClickFunc() func(region string) {
-	return func(region string) {
-		region = text.StripColor(region)
-		found := a.processor.docOptions.Search(region)
-		if found > 0 {
-			a.widgets.sidebar.Select(found)
-		}
+func (a *App) updateCommand(cmd string) {
+	if len(cmd) > 0 {
+		a.processor.LoadCommand(cmd)
 	}
-}
-
-func (a *App) commandOptions() *widgets.CommandOptions {
-	opts := widgets.NewCommandOptions()
-	opts.SetClickFunc(a.processor.DocumentationOptions(), func(index int) {
-		a.widgets.sidebar.Select(index)
-	})
-	opts.SetOptions(a.processor.CommandOptions())
-
-	return opts
+	a.widgets.sidebar.SetOptions(a.processor.DocumentationOptions())
+	a.widgets.commandLine.SetCommand(a.processor.Command(), a.processor.DocumentationOptions())
+	a.widgets.commandOptions.SetOptions(a.processor.CommandOptions())
+	a.widgets.pages.Show(PageDashboard)
 }
