@@ -29,6 +29,18 @@ func (o *Option) String() string {
 	return name
 }
 
+func (o *Option) StringWithArg() string {
+	return o.String() + o.StringArg()
+}
+
+func (o *Option) StringArg() string {
+	str := ""
+	if len(o.Parameter) > 0 {
+		str += " <" + o.Parameter + ">"
+	}
+	return str
+}
+
 func NewOption(name, description string) *Option {
 	return buildOption(name, description)
 }

@@ -1,8 +1,6 @@
 package widgets
 
 import (
-	"github.com/gdamore/tcell/v2"
-	"github.com/ignasbernotas/explain/config"
 	"github.com/ignasbernotas/explain/parsers/man"
 	"github.com/ignasbernotas/explain/text"
 	"github.com/rivo/tview"
@@ -22,7 +20,7 @@ func NewSelectedArgument() *SelectedArgument {
 }
 
 func (c *SelectedArgument) Select(option *man.Option) {
-	c.title.SetTextColor(tcell.GetColor(config.FlagColor)).SetText(option.String())
+	c.title.SetText(text.ColorOption(1, option))
 	c.description.SetText(text.FormatDescription(option.Description)).ScrollToBeginning()
 }
 
@@ -42,6 +40,11 @@ func (c *SelectedArgument) Layout() *tview.Flex {
 func (c *SelectedArgument) buildTitle() *tview.TextView {
 	t := Title("Welcome!", 0, false)
 	t.SetBorderPadding(0, 0, 2, 2)
+	t.SetDynamicColors(true)
+	t.SetRegions(true)
+	t.SetRegionClickFunc(func(region string) {
+		// do nothing
+	})
 
 	return t
 }

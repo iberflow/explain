@@ -60,7 +60,7 @@ func (c *CommandOptions) addOption(index int, option *man.Option) *CommandOption
 		SetDynamicColors(true).
 		SetRegions(true)
 
-	titleText := text.Underline(text.MarkRegion(index, option.String(), true))
+	titleText := text.ColorOption(index, option)
 	title := Title("◉ "+titleText, 1, false)
 	title.SetBorderPadding(1, 0, 2, 2)
 	title.SetRegionClickFunc(c.clickFunc)

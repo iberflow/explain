@@ -32,6 +32,10 @@ func StripColor(desc string) string {
 	return desc
 }
 
+func ColorOption(index int, opt *man.Option) string {
+	return Underline(MarkRegion(index, opt.String(), true)) + "[::d]" + opt.StringArg()
+}
+
 func Underline(arg string) string {
 	return fmt.Sprintf(`[::u]%s[""]`, arg)
 }

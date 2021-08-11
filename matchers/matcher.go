@@ -7,14 +7,14 @@ import (
 )
 
 type Matcher struct {
-	command    *args.Command
-	manOptions *man.List
+	command              *args.Command
+	documentationOptions *man.List
 }
 
 func NewMatcher(command *args.Command, options *man.List) *Matcher {
 	return &Matcher{
-		command:    command,
-		manOptions: options,
+		command:              command,
+		documentationOptions: options,
 	}
 }
 
@@ -26,7 +26,7 @@ func (m *Matcher) Match() *man.List {
 		if strings.HasPrefix(arg.Name, "--") {
 			name := strings.TrimLeft(arg.Name, "-")
 
-			for _, opt := range m.manOptions.Options() {
+			for _, opt := range m.documentationOptions.Options() {
 				// search for exact match
 				if opt.Name == name || opt.Alias == name {
 					found = append(found, opt)
@@ -41,7 +41,7 @@ func (m *Matcher) Match() *man.List {
 		if strings.HasPrefix(arg.Name, "-") {
 			name := strings.TrimLeft(arg.Name, "-")
 
-			for _, opt := range m.manOptions.Options() {
+			for _, opt := range m.documentationOptions.Options() {
 				// search for exact match
 				if opt.Name == name || opt.Alias == name {
 					found = append(found, opt)
@@ -61,8 +61,4 @@ func (m *Matcher) Match() *man.List {
 	}
 
 	return man.NewList(found)
-}
-
-func (m *Matcher) unique(list *man.List) {
-
 }
