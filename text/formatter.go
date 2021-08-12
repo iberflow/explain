@@ -41,5 +41,5 @@ func Underline(arg string) string {
 }
 
 func MarkRegion(index int, arg string, flag bool) string {
-	return fmt.Sprintf(`["%d"]%s[""]`, index, config.ColorArg(arg, flag, ""))
+	return fmt.Sprintf(`["%d"]%s[""]`, index, config.ColorArg(arg, flag))
 }

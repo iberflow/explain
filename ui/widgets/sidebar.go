@@ -19,7 +19,6 @@ func NewSidebar() *Sidebar {
 
 func (s *Sidebar) Select(index int) {
 	s.view.SetCurrentItem(index)
-	s.view.SetOffset(index, 0)
 }
 
 func (s *Sidebar) SetSelectionFunc(selected func(index int)) {
@@ -34,6 +33,8 @@ func (s *Sidebar) SetOptions(options *man.List) *tview.List {
 	for _, opt := range options.Options() {
 		s.view.AddItem(opt.String(), opt.Description, 0, nil)
 	}
+
+	s.view.ScrollToSelected()
 
 	return s.view
 }
