@@ -20,7 +20,14 @@ var sectionPattern = regexp.MustCompile(`(?i)\.` + MacroStructureSectionHeading 
 
 // curl doc uses .IP for options
 // ssh doc uses .It fl for options
-var optionPattern = regexp.MustCompile(`(?i)\.I[P|t]\s(fl)?(.*)`)
+var curlPattern = regexp.MustCompile(`(?i)\.IP\s(.*)`)
+var sshPattern = regexp.MustCompile(`(?i)\.It\sFl\s(.*)`)
+var allOptionPattern = regexp.MustCompile(`(?i)\.I[P|t]\s(fl)?(.*)`)
+
+const (
+	TypeCurl = "curl"
+	TypeSSH  = "ssh"
+)
 
 func (p *Parser) Parse(str string) *Page {
 	var currentSectionName string
@@ -40,28 +47,36 @@ func (p *Parser) Parse(str string) *Page {
 		// there are probably more of these inner content sections that we need to ignore
 		if isMacro(line, MacroStructureRelativeInsetStart) {
 			innerStructure = true
+			//fmt.Println("is macro start")
 			continue
 		}
 
 		// end of inner content
 		if isMacro(line, MacroStructureRelativeInsetEnd) {
+			//fmt.Println("is macro end")
+
 			innerStructure = false
 			continue
 		}
 
 		if p.isSectionLine(line) {
 			currentSectionName = p.parseSectionLine(line)
+			//fmt.Println("name: " + currentSectionName)
 		}
 
 		// only look for arguments in specific sections
 		if (currentSectionName == SectionDescription || currentSectionName == SectionOptions) && p.isOptionLine(line) {
+			//fmt.Println("----------------------")
+			//fmt.Println("line: ", line)
 			arg := p.parseOptionLine(line)
+			//fmt.Println("arg:", arg)
 
 			// if this is not the very first arg in the doc
 			// store the previous one
 			// also ignore args without descriptions, they're not helpful
 			if len(currentArgName) > 0 {
 				if len(currentArgDescription) > 0 {
+					//fmt.Println("opt: ", currentArgName, "desc: ", currentArgDescription)
 					opt := NewOption(currentArgName, currentArgDescription)
 					page.Options.Add(opt)
 				}
@@ -101,13 +116,31 @@ func (p *Parser) parseSectionLine(str string) string {
 }
 
 func (p *Parser) isOptionLine(str string) bool {
-	return optionPattern.MatchString(str)
+	return allOptionPattern.MatchString(str)
+}
+
+func getPatternType(str string) string {
+	if curlPattern.MatchString(str) {
+		return TypeCurl
+	}
+
+	if sshPattern.MatchString(str) {
+		return TypeSSH
+	}
+
+	return TypeCurl
 }
 
 func (p *Parser) parseOptionLine(str string) string {
-	r := optionPattern.FindStringSubmatch(str)
+	r := curlPattern.FindStringSubmatch(str)
+
 	if len(r) == 0 {
-		return ""
+		r = sshPattern.FindStringSubmatch(str)
+		if len(r) == 0 {
+			return ""
+		}
+		value := strings.Trim(r[1], `" `)
+		return value
 	}
 
 	value := strings.Trim(r[2], `" `)

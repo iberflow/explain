@@ -14,7 +14,7 @@ type Option struct {
 	Alias          string
 	AliasIndicator string
 
-	Parameter   string
+	Parameters  []string
 	Description string
 }
 
@@ -35,8 +35,8 @@ func (o *Option) StringWithArg() string {
 
 func (o *Option) StringArg() string {
 	str := ""
-	if len(o.Parameter) > 0 {
-		str += " <" + o.Parameter + ">"
+	if len(o.Parameters) > 0 && len(o.Parameters[0]) > 0 {
+		str += " <" + o.Parameters[0] + ">"
 	}
 	return str
 }
@@ -53,16 +53,25 @@ func buildOption(name string, description string) *Option {
 	if paramPattern.MatchString(name) {
 		param = strings.Trim(paramPattern.FindString(name), "<>")
 		name = paramPattern.ReplaceAllString(name, "")
+	} else {
+		// <value> Ar <argument>
+		split := strings.Split(name, " "+MacroArgument+" ")
+		if len(split) > 1 {
+			name = split[0]
+			param = split[1]
+		}
 	}
 
-	// split into multiple args and trim
 	for _, arg := range strings.Split(name, ",") {
 		args = append(args, strings.TrimSpace(arg))
 	}
 
 	opt := &Option{}
-	opt.Parameter = param
-	opt.Description = description
+	if len(param) > 0 {
+		opt.Parameters = []string{param}
+	} else {
+		opt.Parameters = []string{}
+	}
 
 	// handle arg having a short and a long name
 	if len(args) == 2 {
@@ -88,18 +97,7 @@ func buildOption(name string, description string) *Option {
 
 	opt.Name = strings.Trim(opt.Name, "-")
 	opt.Alias = strings.Trim(opt.Alias, "-")
+	opt = updateDescriptionAndName(opt, description)
 
 	return opt
-}
-
-func getIndicator(name string) string {
-	if strings.Contains(name, "--") {
-		return "--"
-	}
-
-	if strings.Contains(name, "-") {
-		return "-"
-	}
-
-	return ""
 }

@@ -40,7 +40,7 @@ func (c *CommandOptions) Clear() *CommandOptions {
 func (c *CommandOptions) SetOptions(list *man.List) *CommandOptions {
 	c.Clear()
 
-	list = list.Unique()
+	list = list.Unique(false)
 	list.Sort()
 
 	for i, u := range list.Options() {

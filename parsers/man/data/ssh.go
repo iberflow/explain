@@ -599,6 +599,7 @@ Causes most warning and diagnostic messages to be suppressed.
 .Ar port : host : hostport
 .Sm on
 .Xc
+[bind_address:]port:host:hostport
 .It Fl R Xo
 .Sm off
 .Oo Ar bind_address : Oc
@@ -621,6 +622,7 @@ Causes most warning and diagnostic messages to be suppressed.
 .Ar port
 .Sm on
 .Xc
+[bind_address:]port:host:hostport
 Specifies that connections to the given TCP port or Unix socket on the remote
 (server) host are to be forwarded to the local side.
 .Pp

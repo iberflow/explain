@@ -12,6 +12,6 @@ func TestParseOption(t *testing.T) {
 	assert.Equal(t, "--", r.NameIndicator)
 	assert.Equal(t, "m", r.Alias)
 	assert.Equal(t, "-", r.AliasIndicator)
-	assert.Equal(t, "seconds", r.Parameter)
+	assert.Equal(t, "seconds", r.Parameters[0])
 	assert.Equal(t, "some description", r.Description)
 }

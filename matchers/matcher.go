@@ -19,7 +19,7 @@ func NewMatcher(command *args.Command, options *man.List) *Matcher {
 }
 
 func (m *Matcher) Match() *man.List {
-	var found []*man.Option
+	found := *man.NewList(make([]*man.Option, 0))
 
 	for _, arg := range m.command.Args.Items() {
 		// match double dashed args
@@ -29,7 +29,7 @@ func (m *Matcher) Match() *man.List {
 			for _, opt := range m.documentationOptions.Options() {
 				// search for exact match
 				if opt.Name == name || opt.Alias == name {
-					found = append(found, opt)
+					found.Add(opt)
 					break
 				}
 			}
@@ -44,14 +44,14 @@ func (m *Matcher) Match() *man.List {
 			for _, opt := range m.documentationOptions.Options() {
 				// search for exact match
 				if opt.Name == name || opt.Alias == name {
-					found = append(found, opt)
+					found.Add(opt)
 					break
 				} else {
 					// split arg into characters and search
 					for _, c := range name {
 						cc := string(c)
 						if opt.Name == cc || opt.Alias == cc {
-							found = append(found, opt)
+							found.Add(opt)
 							break
 						}
 					}
@@ -60,5 +60,5 @@ func (m *Matcher) Match() *man.List {
 		}
 	}
 
-	return man.NewList(found)
+	return found.Unique(false)
 }

@@ -1,6 +1,7 @@
 package man
 
 import (
+	"github.com/ignasbernotas/explain/parsers/man/data"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -28,13 +29,15 @@ func TestParsing(t *testing.T) {
 	parser := NewParser()
 	result := parser.Parse(TestOptions)
 
-	assert.Equal(t, 3, len(result.Options))
-	assert.Equal(t, "cacert", result.Options[0].Name)
-	assert.Equal(t, "cacert", result.Options[0].ShortName)
-	assert.Equal(t, "append", result.Options[1].Name)
-	assert.Equal(t, "a", result.Options[1].ShortName)
-	assert.Equal(t, "basic", result.Options[2].Name)
-	assert.Equal(t, "basic", result.Options[2].ShortName)
+	opts := result.Options.Options()
+
+	assert.Equal(t, 3, len(opts))
+	assert.Equal(t, "cacert", opts[0].Name)
+	assert.Equal(t, "cacert", opts[0].Alias)
+	assert.Equal(t, "append", opts[1].Name)
+	assert.Equal(t, "a", opts[1].Alias)
+	assert.Equal(t, "basic", opts[2].Name)
+	assert.Equal(t, "basic", opts[2].Alias)
 }
 
 func TestSectionLineParsing(t *testing.T) {
@@ -51,6 +54,12 @@ func TestOptionLineParsing(t *testing.T) {
 	result := parser.parseOptionLine(`.IP "--alt-svc <file name>"`)
 	assert.Equal(t, `--alt-svc <file name>`, result)
 
-	result = parser.parseOptionLine(`.It Fl 4`)
+	result = parser.parseOptionLine(`.It Fl 4 adadsas`)
+	assert.Equal(t, `4`, result)
+}
+
+func TestOptionLineParsing2(t *testing.T) {
+	parser := NewParser()
+	result := parser.Parse(data.SSH_OUTPUT)
 	assert.Equal(t, `4`, result)
 }

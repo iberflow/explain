@@ -31,16 +31,39 @@ func (ol *List) Add(option *Option) *List {
 	return ol
 }
 
-func (ol *List) Unique() *List {
-	keys := make(map[string]bool)
+func (ol *List) Unique(concatDescription bool) *List {
+	groups := make(map[string][]*Option)
 	list := NewList(make([]*Option, 0))
-	for _, entry := range ol.options {
-		if _, value := keys[entry.Name]; !value {
-			keys[entry.Name] = true
-			list.Add(entry)
+
+	for _, opt := range ol.options {
+		if _, value := groups[opt.Name]; !value {
+			groups[opt.Name] = make([]*Option, 0)
 		}
+		groups[opt.Name] = append(groups[opt.Name], opt)
 	}
 
+	for _, group := range groups {
+		var desc string
+		var params []string
+		for i, opt := range group {
+			if concatDescription {
+				desc += opt.Description
+			}
+
+			if len(opt.Parameters) > 0 {
+				params = append(params, opt.Parameters...)
+			}
+
+			if i == len(group)-1 {
+				if concatDescription {
+					opt.Description = desc
+				}
+
+				opt.Parameters = params
+				list.Add(opt)
+			}
+		}
+	}
 	return list
 }
 

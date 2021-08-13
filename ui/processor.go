@@ -41,8 +41,10 @@ func (p *Processor) LoadCommand(command string) {
 
 	parsedPage := p.parser.Parse(manPage)
 	p.docOptions = parsedPage.Options
+	p.docOptions = p.docOptions.Unique(true)
+	p.docOptions.Sort()
 
-	argumentMatcher := matchers.NewMatcher(p.command, parsedPage.Options)
+	argumentMatcher := matchers.NewMatcher(p.command, p.docOptions)
 	p.commandOptions = argumentMatcher.Match()
 }
 

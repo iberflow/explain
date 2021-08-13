@@ -39,6 +39,14 @@ package man
   .YS     Synopsis end                 Command synopsis macros
 */
 
+const MacroArgListStart = "Xo"
+const MacroArgListEnd = "Xc"
+const MacroNoSpacesOn =".Sm off"
+const MacroNoSpacesOff =".Sm on"
+const MacroArgument = "Ar"
+const MacroSquareBracketStart = ".Oo"
+const MacroSquareBracketEnd = "Oc"
+
 const MacroFontBold = "B"
 const MacroFontBoldItalic = "BI"
 const MacroFontBoldRoman = "BR"
