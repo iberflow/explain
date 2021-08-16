@@ -29,7 +29,7 @@ const (
 	TypeSSH  = "ssh"
 )
 
-func (p *Parser) Parse(str string) *Page {
+func (p *Parser) Parse(str, commandName string) *Page {
 	var currentSectionName string
 	var currentArgName string
 	var currentArgDescription string
@@ -77,7 +77,7 @@ func (p *Parser) Parse(str string) *Page {
 			if len(currentArgName) > 0 {
 				if len(currentArgDescription) > 0 {
 					//fmt.Println("opt: ", currentArgName, "desc: ", currentArgDescription)
-					opt := NewOption(currentArgName, currentArgDescription)
+					opt := NewOption(commandName, currentArgName, currentArgDescription)
 					page.Options.Add(opt)
 				}
 			}

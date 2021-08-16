@@ -6,7 +6,7 @@ import (
 )
 
 func TestParseOption(t *testing.T) {
-	r := buildOption("-m, --max-time <seconds>", "some description")
+	r := buildOption("", "-m, --max-time <seconds>", "some description")
 
 	assert.Equal(t, "max-time", r.Name)
 	assert.Equal(t, "--", r.NameIndicator)

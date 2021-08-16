@@ -41,11 +41,11 @@ func (o *Option) StringArg() string {
 	return str
 }
 
-func NewOption(name, description string) *Option {
-	return buildOption(name, description)
+func NewOption(toolName, name, description string) *Option {
+	return buildOption(toolName, name, description)
 }
 
-func buildOption(name string, description string) *Option {
+func buildOption(toolName, name, description string) *Option {
 	var args []string
 	var param string
 
@@ -97,7 +97,19 @@ func buildOption(name string, description string) *Option {
 
 	opt.Name = strings.Trim(opt.Name, "-")
 	opt.Alias = strings.Trim(opt.Alias, "-")
-	opt = updateDescriptionAndName(opt, description)
+	opt = updateAttributes(opt, description, toolName)
 
 	return opt
+}
+
+func getIndicator(name string) string {
+	if strings.Contains(name, "--") {
+		return "--"
+	}
+
+	if strings.Contains(name, "-") {
+		return "-"
+	}
+
+	return "-"
 }

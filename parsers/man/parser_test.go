@@ -27,7 +27,7 @@ previously set option that sets a different authentication method (such as
 
 func TestParsing(t *testing.T) {
 	parser := NewParser()
-	result := parser.Parse(TestOptions)
+	result := parser.Parse(TestOptions, "curl")
 
 	opts := result.Options.Options()
 
@@ -60,6 +60,6 @@ func TestOptionLineParsing(t *testing.T) {
 
 func TestOptionLineParsing2(t *testing.T) {
 	parser := NewParser()
-	result := parser.Parse(data.SSH_OUTPUT)
+	result := parser.Parse(data.SSH_OUTPUT, "ssh")
 	assert.Equal(t, `4`, result)
 }

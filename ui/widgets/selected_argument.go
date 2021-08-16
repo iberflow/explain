@@ -8,60 +8,74 @@ import (
 )
 
 type SelectedArgument struct {
-	title       *tview.TextView
-	description *tview.TextView
-	arguments   *tview.TextView
-	argumentsFormat   *tview.TextView
+	layout          *tview.Flex
+	optionArguments *tview.Flex
+
+	name            *tview.TextView
+	description     *tview.TextView
+	arguments       *tview.TextView
+	argumentsFormat *tview.TextView
 }
 
 func NewSelectedArgument() *SelectedArgument {
 	s := &SelectedArgument{}
-	s.title = s.buildTitle()
+	s.name = s.buildTitle()
 	s.description = s.buildDescription()
 	s.arguments = s.buildArguments()
 	s.argumentsFormat = s.buildArgumentFormats()
+	s.optionArguments = s.buildOptionArgs()
+	s.layout = s.buildLayout()
 
 	return s
 }
 
-func (c *SelectedArgument) Select(option *man.Option) {
-	c.title.SetText(text.ColorOption(1, option))
-	c.description.SetText(text.FormatDescription(option.Description)).ScrollToBeginning()
+func (s *SelectedArgument) Select(option *man.Option) {
+	s.name.SetText(text.ColorOption(1, option))
+	s.description.SetText(text.FormatDescription(option.Description)).ScrollToBeginning()
 
 	title := `[::d]Argument formats:`
 	if len(option.Parameters) < 2 {
 		title = ""
+		s.layout.ResizeItem(s.optionArguments, 0,0)
+	} else {
+		s.layout.ResizeItem(s.optionArguments, 0,3)
 	}
-	c.argumentsFormat.SetText(title)
-	c.arguments.SetText(drawArgumentList(option.Parameters)).ScrollToBeginning()
+	s.argumentsFormat.SetText(title)
+	s.arguments.SetText(drawArgumentList(option.Parameters)).ScrollToBeginning()
 }
 
-func (c *SelectedArgument) SetClickFunc(opts *man.List, callback func(index int)) *SelectedArgument {
-	c.description.SetRegionClickFunc(ClickFunc(opts, callback))
+func (s *SelectedArgument) SetClickFunc(opts *man.List, callback func(index int)) *SelectedArgument {
+	s.description.SetRegionClickFunc(ClickFunc(opts, callback))
 
-	return c
+	return s
 }
 
-func (c *SelectedArgument) Layout() *tview.Flex {
-	args := tview.NewFlex().
-		SetDirection(tview.FlexRow).
-		AddItem(c.argumentsFormat, 3, 1, false).
-		AddItem(c.arguments, 0, 5, true)
-
+func (s *SelectedArgument) buildLayout() *tview.Flex {
 	content := tview.NewFlex().
 		SetDirection(tview.FlexRow).
-		AddItem(c.title, 1, 1, false).
-		AddItem(c.description, 0, 1, true)
+		AddItem(s.name, 1, 1, false).
+		AddItem(s.description, 0, 1, true)
 
 	layout := tview.NewFlex().
 		SetDirection(tview.FlexColumn).
 		AddItem(content, 0, 6, false).
-		AddItem(args, 0, 3, true)
+		AddItem(s.optionArguments, 0, 3, true)
 
 	return layout
 }
 
-func (c *SelectedArgument) buildTitle() *tview.TextView {
+func (s *SelectedArgument) Layout() *tview.Flex {
+	return s.layout
+}
+
+func (s *SelectedArgument) buildOptionArgs() *tview.Flex {
+	return tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(s.argumentsFormat, 3, 1, false).
+		AddItem(s.arguments, 0, 5, true)
+}
+
+func (s *SelectedArgument) buildTitle() *tview.TextView {
 	t := Title("Welcome!", 0, false)
 	t.SetBorderPadding(0, 0, 2, 2)
 	t.SetDynamicColors(true)
@@ -73,7 +87,7 @@ func (c *SelectedArgument) buildTitle() *tview.TextView {
 	return t
 }
 
-func (c *SelectedArgument) buildDescription() *tview.TextView {
+func (s *SelectedArgument) buildDescription() *tview.TextView {
 	activeOption := tview.NewTextView()
 	activeOption.SetText("").
 		SetToggleHighlights(true).
@@ -86,7 +100,7 @@ func (c *SelectedArgument) buildDescription() *tview.TextView {
 	return activeOption
 }
 
-func (c *SelectedArgument) buildArgumentFormats() *tview.TextView {
+func (s *SelectedArgument) buildArgumentFormats() *tview.TextView {
 	formatTitle := tview.NewTextView().
 		SetDynamicColors(true).
 		SetText(`[::d]Argument formats`)
@@ -95,7 +109,7 @@ func (c *SelectedArgument) buildArgumentFormats() *tview.TextView {
 	return formatTitle
 }
 
-func (c *SelectedArgument) buildArguments() *tview.TextView {
+func (s *SelectedArgument) buildArguments() *tview.TextView {
 	args := tview.NewTextView()
 	args.SetText("").
 		SetToggleHighlights(true).

@@ -55,6 +55,7 @@ func (c *CommandOptions) addOption(index int, option *man.Option) *CommandOption
 	optionBox.SetBorderPadding(0, 0, 2, 2)
 	optionBox.SetText(text.FormatDescription(strings.TrimSpace(option.Description)))
 	optionBox.SetRegionClickFunc(c.clickFunc)
+	optionBox.SetWordWrap(true)
 	optionBox.SetBorder(false)
 	optionBox.SetToggleHighlights(true).
 		SetDynamicColors(true).

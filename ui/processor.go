@@ -39,7 +39,7 @@ func (p *Processor) LoadCommand(command string) {
 		return
 	}
 
-	parsedPage := p.parser.Parse(manPage)
+	parsedPage := p.parser.Parse(manPage, p.command.Name)
 	p.docOptions = parsedPage.Options
 	p.docOptions = p.docOptions.Unique(true)
 	p.docOptions.Sort()
