@@ -5,7 +5,6 @@ import (
 	"github.com/ignasbernotas/explain/parsers/args"
 	"github.com/ignasbernotas/explain/parsers/man"
 	manreader "github.com/ignasbernotas/explain/readers/man"
-	"log"
 )
 
 type Processor struct {
@@ -30,13 +29,12 @@ func NewProcessor(reader *manreader.Reader, parser *man.Parser) *Processor {
 	}
 }
 
-func (p *Processor) LoadCommand(command string) {
+func (p *Processor) LoadCommand(command string) error {
 	p.command = args.Parse(command)
 
 	manPage, err := p.reader.Read(p.command.Name)
 	if err != nil {
-		log.Println(err.Error())
-		return
+		return err
 	}
 
 	parsedPage := p.parser.Parse(manPage, p.command.Name)
@@ -46,6 +44,8 @@ func (p *Processor) LoadCommand(command string) {
 
 	argumentMatcher := matchers.NewMatcher(p.command, p.docOptions)
 	p.commandOptions = argumentMatcher.Match()
+
+	return nil
 }
 
 func (p *Processor) Command() *args.Command {

@@ -36,7 +36,7 @@ func (h *Help) draw() *tview.Flex {
 	help.AddItem(shortcut("[", "History forward"), 1, 1, false)
 	help.AddItem(tview.NewBox(), 1, 1, false)
 	help.AddItem(shortcut("esc", "Back / Quit"), 1, 1, false)
-	help.AddItem(shortcut("q  ", "Back / Quit"), 1, 1, false)
+	help.AddItem(shortcut(" q ", "Back / Quit"), 1, 1, false)
 	help.AddItem(tview.NewBox(), 3, 1, false)
 	help.AddItem(h.debug, 0, 10, false)
 

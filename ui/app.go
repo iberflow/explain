@@ -193,7 +193,10 @@ func (a *App) commandOptions() *widgets.CommandOptions {
 
 func (a *App) updateCommand(cmd string) {
 	if len(cmd) > 0 {
-		a.processor.LoadCommand(cmd)
+		err := a.processor.LoadCommand(cmd)
+		if err != nil {
+			return
+		}
 	}
 	a.widgets.sidebar.SetOptions(a.processor.DocumentationOptions())
 	a.widgets.sidebar.SetOptions(a.processor.DocumentationOptions())

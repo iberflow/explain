@@ -56,7 +56,11 @@ func fallbackSplitParams(name, param string) (string, string) {
 		return splitParams(name, param, sep)
 	}
 
-	return splitParams(name, param, " ")
+	if !strings.Contains(name, ",") {
+		return splitParams(name, param, " ")
+	}
+
+	return name, param
 }
 
 func splitParams(name, param, sep string) (string, string) {

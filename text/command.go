@@ -60,3 +60,13 @@ func RenderCommand(cmd *args.Command, list *man.List) string {
 
 	return cmd.Name + " " + strings.Join(found, " ")
 }
+
+func RenderSimpleCommand(cmd *args.Command, list *man.List) string {
+	var found []string
+
+	for i, arg := range cmd.Args.Items() {
+		found = append(found, formatArgument(i, arg, list))
+	}
+
+	return cmd.Name + " " + strings.Join(found, " ")
+}

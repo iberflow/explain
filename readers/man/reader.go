@@ -28,12 +28,12 @@ func (r *Reader) Read(page string) (string, error) {
 	file := r.findPage(page)
 
 	if len(file) == 0 {
-		return "", errors.New("failed to find man page for " + page)
+		return "", errors.New("Failed to find man page for: " + page)
 	}
 
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
-		return "", errors.New("failed to read man page for " + page + " in " + file)
+		return "", errors.New("Failed to read man page for " + page + " in " + file)
 	}
 
 	return string(data), nil
