@@ -10,11 +10,11 @@ import (
 )
 
 func FormatDescription(desc string) string {
-	var pattern = regexp.MustCompile(`(?i)(?m)\\f` + man.MacroFontItalic + `([^\\fP]+.*?)\\fP`)
+	pattern := regexp.MustCompile(`(?i)(?m)[\s](\-{1,2}[\w-]+)`)
 	matches := pattern.FindAllStringSubmatch(desc, -1)
 	for i, m := range matches {
 		if args.IsArg(m[1]) {
-			desc = strings.Replace(desc, m[0], MarkRegion(i, m[1], true), 1)
+			desc = strings.Replace(desc, m[0], " "+MarkRegion(i, m[1], true), 1)
 		}
 	}
 
@@ -41,5 +41,17 @@ func Underline(arg string) string {
 }
 
 func MarkRegion(index int, arg string, flag bool) string {
-	return fmt.Sprintf(`["%d"]%s[""]`, index, config.ColorArg(arg, flag))
+	return fmt.Sprintf(`["%d"]%s[""]`, index, ColorArg(arg, flag))
+}
+
+func ColorArg(arg string, flag bool) string {
+	c := config.ArgColor
+
+	if flag {
+		c = config.FlagColor
+	}
+
+	arg = `[` + c + `]` + arg + `[white]`
+
+	return arg
 }

@@ -69,7 +69,6 @@ func (c *CommandOptions) addOption(index int, option *man.Option) *CommandOption
 	title.SetToggleHighlights(true).
 		SetDynamicColors(true).
 		SetRegions(true)
-
 	title.SetBorder(false)
 
 	c.view.AddItem(title, 2, 1, false)

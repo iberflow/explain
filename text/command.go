@@ -1,7 +1,6 @@
 package text
 
 import (
-	"github.com/ignasbernotas/explain/config"
 	"github.com/ignasbernotas/explain/parsers/args"
 	"github.com/ignasbernotas/explain/parsers/man"
 	"strings"
@@ -49,7 +48,7 @@ func formatArgument(regionIndex int, arg *args.Arg, list *man.List) string {
 		return "-" + strings.Join(subset, "")
 	}
 
-	return config.ColorArg(arg.Name, false)
+	return ColorArg(arg.Name, false)
 }
 
 func RenderCommand(cmd *args.Command, list *man.List) string {

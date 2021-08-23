@@ -112,7 +112,7 @@ func (a *App) commandLine() *widgets.CommandLine {
 
 func (a *App) setupKeyBindings() {
 	a.gui.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyEsc {
+		if event.Key() == tcell.KeyEsc || event.Rune() == 'q' {
 			if a.widgets.pages.IsPage(PageDashboard) {
 				a.gui.Stop()
 			} else {

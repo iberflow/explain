@@ -6,6 +6,7 @@ import (
 )
 
 var paramPattern = regexp.MustCompile(`(?i)<(.*)>`)
+var param2Pattern = regexp.MustCompile(`(?i)(\\fI(.*)\\fR)`)
 
 type Option struct {
 	Name          string
@@ -45,22 +46,54 @@ func NewOption(toolName, name, description string) *Option {
 	return buildOption(toolName, name, description)
 }
 
-func buildOption(toolName, name, description string) *Option {
-	var args []string
+func isAbParam(name string) bool {
+	return param2Pattern.MatchString(name)
+}
+
+func fallbackSplitParams(name, param string) (string, string) {
+	sep := " " + MacroArgument + " "
+	if strings.Contains(name, sep) {
+		return splitParams(name, param, sep)
+	}
+
+	return splitParams(name, param, " ")
+}
+
+func splitParams(name, param, sep string) (string, string) {
+	split := strings.Split(name, sep)
+	if len(split) > 1 {
+		name = split[0]
+		param = strings.TrimLeft(split[1], "<")
+
+		return name, param
+	}
+
+	return name, param
+}
+
+func extractNameAndParam(name string) (string, string) {
 	var param string
 
-	// extract <parameter> and remove it from name
-	if paramPattern.MatchString(name) {
-		param = strings.Trim(paramPattern.FindString(name), "<>")
-		name = paramPattern.ReplaceAllString(name, "")
-	} else {
-		// <value> Ar <argument>
-		split := strings.Split(name, " "+MacroArgument+" ")
-		if len(split) > 1 {
-			name = split[0]
-			param = split[1]
+	// AB tool uses a different format than curl or ssh
+	if !isAbParam(name) {
+		// extract <parameter> and remove it from name
+		if paramPattern.MatchString(name) {
+			param = strings.Trim(paramPattern.FindString(name), "<>")
+			name = paramPattern.ReplaceAllString(name, "")
+
+			return fallbackSplitParams(name, param)
 		}
+
+		return fallbackSplitParams(name, param)
 	}
+
+	return fallbackSplitParams(name, param)
+}
+
+func buildOption(toolName, name, description string) *Option {
+	var args []string
+
+	name, param := extractNameAndParam(name)
 
 	for _, arg := range strings.Split(name, ",") {
 		args = append(args, strings.TrimSpace(arg))

@@ -69,13 +69,20 @@ func (ol *List) Unique(concatDescription bool) *List {
 
 func (ol *List) Sort() {
 	sort.Slice(ol.options, func(i, j int) bool {
-		return ol.options[i].Name < ol.options[j].Name
+		return ol.options[i].Name < ol.options[j].Name || ol.options[i].Alias < ol.options[j].Alias
 	})
 }
 
 func (ol *List) Search(match string) int {
+	match = strings.TrimSpace(match)
+
 	for i, o := range ol.options {
 		if o.String() == match {
+			return i
+		}
+
+		name := strings.TrimLeft(match, "-")
+		if o.Name == name {
 			return i
 		}
 

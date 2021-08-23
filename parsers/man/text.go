@@ -7,13 +7,16 @@ import (
 
 var space = regexp.MustCompile(`\s`)
 var spaceMulti = regexp.MustCompile(`\s+`)
+
 var wrapReplacements = map[string]string{
 	MacroFontUnderline:  `[::u]$2[::-]`,
 	MacroArgWithoutDash: `[::b]$2[::-]`,
 	MacroBrackets:       `($2)`,
 	MacroFlag:           `[::b]-$2[::-]`,
 	MacroDoubleQuote:    `"$2"`,
+	MacroQuoteLiteral:   `"$2"`,
 	MacroSingleQuote:    `'$2'`,
+	MacroBeginList:      "",
 }
 
 var spacedReplacements = map[string]string{
@@ -27,17 +30,24 @@ var spacedReplacements = map[string]string{
 }
 
 var replacements = map[string]string{
-	MacroSquareBracketStart: "[",
-	MacroSquareBracketEnd:   "]",
-	MacroNoSpacesOn:         "",
-	MacroNoSpacesOff:        "",
-	MacroArgListStart:       "",
-	MacroArgListEnd:         "",
-	MacroBrackets:           "",
-	MacroParagraph2:         "\n",
-	MacroDoubleQuote:        "",
-	MacroSingleQuote:        "",
+	MacroSquareBracketStart:              "[",
+	MacroSquareBracketEnd:                "]",
+	MacroNoSpacesOn:                      "",
+	MacroNoSpacesOff:                     "",
+	MacroParagraphTag:                    "",
+	MacroArgListStart:                    "",
+	MacroArgListEnd:                      "",
+	MacroBrackets:                        "",
+	MacroParagraph2:                      "\n",
+	MacroExtendedArgList:                 "\n",
+	MacroEndList:                         "",
+	MacroDoubleQuote:                     "",
+	MacroSingleQuote:                     "",
 	MacroUnix + " " + MacroNoSpace + " ": "UNIX",
+	`\fB`:                                "",
+	`\fI`:                                "",
+	`\fR`:                                "",
+	`\fP`:                                "",
 }
 
 var wrapRef = map[string]string{
@@ -47,8 +57,8 @@ var wrapRef = map[string]string{
 
 func wrapReference(str string) string {
 	for token, replacement := range wrapRef {
-		var pat2 = regexp.MustCompile(`(?i)(\.?` + token + `)\s([\w|\-_]+)\s([\w|\-_]+)`)
-		str = pat2.ReplaceAllString(str, replacement)
+		var pattern = regexp.MustCompile(`(?i)(\.?` + token + `)\s([\w|\-_]+)\s([\w|\-_]+)`)
+		str = pattern.ReplaceAllString(str, replacement)
 	}
 	return str
 }
@@ -94,18 +104,18 @@ func replace(str string) string {
 	return str
 }
 
-func isArgumentList(str string) bool {
-	return strings.Contains(str, MacroArgListStart)
-}
-
 func updateAttributes(opt *Option, str, toolName string) *Option {
 	sep := "\n"
 	noSpacesIndex := -1
-	argList := isArgumentList(opt.Name)
-	if argList {
-		opt.Name = strings.ReplaceAll(opt.Name, " "+MacroArgListStart, "")
-		opt.Alias = strings.ReplaceAll(opt.Alias, " "+MacroArgListStart, "")
+
+	// some arguments have parameters that indicate a start of an arg list
+	// reset those parameters and tell the parser to expect that list
+	argList := false
+	if len(opt.Parameters) > 0 && opt.Parameters[0] == MacroArgListStart {
+		argList = true
+		opt.Parameters = []string{}
 	}
+
 	lines := strings.Split(str, sep)
 	var newLines []string
 	for index, l := range lines {
@@ -146,6 +156,10 @@ func updateAttributes(opt *Option, str, toolName string) *Option {
 	opt.Description = fixSentences(opt.Description)
 	opt.Description = replaceToolName(opt.Description, toolName)
 	opt.Description = spaceMulti.ReplaceAllString(opt.Description, " ")
+	opt.Description = replace(opt.Description)
+
+	opt.Name = replace(opt.Name)
+	opt.Alias = replace(opt.Alias)
 
 	return opt
 }
@@ -155,15 +169,17 @@ func fixSentences(str string) string {
 	str = strings.ReplaceAll(str, " .", ".")
 	str = strings.ReplaceAll(str, " ( ", " (")
 	str = strings.ReplaceAll(str, `  `, ` `)
+	str = strings.ReplaceAll(str, `\&`, ``)
 
-	// TODO: tview does not display \n\n in text
+	// TODO: tview does not display multi-line text
 	var pattern = regexp.MustCompile(`(?i)(\.?\n)+`)
 	str = pattern.ReplaceAllStringFunc(str, func(s string) string {
-		if strings.Contains(s,".\n") {
+		if strings.Contains(s, ".\n") {
 			return s
 		}
 
 		return " "
 	})
+
 	return str
 }
