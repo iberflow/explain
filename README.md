@@ -11,6 +11,25 @@ This tool simplifies things by displaying option descriptions right in your term
 
 This project intends to give developers a simple way to analyze most commonly used CLI tools such as `curl`, `ssh`, `ab` and eventually more moderns tools like `k8s`, `nomad`, `consul` or even language interpreters like `php`, `python`, `go` or `ruby`.
 
+---
+
+### Features
+
+- Responsive layout
+- Command option descriptions
+- Selected option value format display
+- Links within descriptions to other options
+- Keyboard shortcuts
+  - Sidebar
+    - Arrow up / down
+  - History
+    - [ - Go back
+    - ] - Go forward
+    - esc / q - Close modal or quit the app
+  - Change command
+    - / - opens a modal form
+- Mouse click support
+
 ### Usage
 
 For now, you have to build it yourself. I will be setting up Github Actions to build release artifacts and set up Homebrew (which now supports WSL) to make it easily distributable.
